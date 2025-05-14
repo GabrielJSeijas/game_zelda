@@ -95,39 +95,66 @@ int main() {
     return 0;
 }
 
+// Modifica inicializar_juego() así:
 void inicializar_juego(int num_aldeas) {
     srand(time(NULL));
     
-    // 1. Crear listas de nombres base
     const char* nombres_aldeas[] = {"Kakariko", "Hateno", "Zora", "Goron", "Gerudo"};
     const char* nombres_mazmorras[] = {"Agua", "Tierra", "Fuego", "Aire"};
     const char* nombres_items[] = {"Espada", "Escudo", "Arco", "Boomerang", "Bomba"};
+    
     int num_nombres_aldeas = sizeof(nombres_aldeas)/sizeof(nombres_aldeas[0]);
     int num_nombres_mazmorras = sizeof(nombres_mazmorras)/sizeof(nombres_mazmorras[0]);
     int num_nombres_items = sizeof(nombres_items)/sizeof(nombres_items[0]);
-    
+
+    // 1. Crear items
+    items_superior = malloc(num_aldeas * sizeof(Item));
+    for (int i = 0; i < num_aldeas; i++) {
+        char* nombre_item = generar_nombre(nombres_items, num_nombres_items, i);
+        strncpy(items_superior[i].nombre, nombre_item, 50);
+        free(nombre_item);
+        items_superior[i].encontrado = 0;
+        items_superior[i].mazmorra_asociada = NULL;
+    }
+
     // 2. Crear mundo superior
     Aldea* anterior = NULL;
     for (int i = 0; i < num_aldeas; i++) {
-        Aldea* nueva_aldea = (Aldea*)malloc(sizeof(Aldea));
-        
-        // Generar nombre para la aldea
+        Aldea* nueva_aldea = malloc(sizeof(Aldea));
+        Mazmorra* nueva_mazmorra = malloc(sizeof(Mazmorra));
+
+        // Configurar aldea
         char* nombre_aldea = generar_nombre(nombres_aldeas, num_nombres_aldeas, i);
         strncpy(nueva_aldea->nombre, nombre_aldea, 50);
         free(nombre_aldea);
         
-        // Crear mazmorra asociada
-        Mazmorra* nueva_mazmorra = (Mazmorra*)malloc(sizeof(Mazmorra));
+        // Configurar mazmorra
         char* nombre_mazmorra = generar_nombre(nombres_mazmorras, num_nombres_mazmorras, i);
         strncpy(nueva_mazmorra->nombre, nombre_mazmorra, 50);
         free(nombre_mazmorra);
         
         nueva_mazmorra->derrotada = 0;
-        nueva_mazmorra->item_requerido = NULL;
-        nueva_mazmorra->item_oculto = NULL;
-        
         nueva_aldea->mazmorra_asociada = nueva_mazmorra;
+        
+        // Asignar item requerido
+        if (i == 0) {
+            nueva_mazmorra->item_requerido = &items_superior[0];
+        } else {
+            int item_index;
+            do {
+                item_index = rand() % num_aldeas;
+            } while (items_superior[item_index].mazmorra_asociada != NULL);
+            
+            nueva_mazmorra->item_requerido = &items_superior[item_index];
+            items_superior[item_index].mazmorra_asociada = nueva_mazmorra;
+        }
+        
+        // Asignar item oculto (50% probabilidad)
         nueva_aldea->item_oculto = NULL;
+        if (rand() % 2 == 0) {
+            nueva_aldea->item_oculto = &items_superior[rand() % num_aldeas];
+        }
+
         nueva_aldea->anterior = anterior;
         nueva_aldea->siguiente = NULL;
         
@@ -140,12 +167,8 @@ void inicializar_juego(int num_aldeas) {
         anterior = nueva_aldea;
     }
     
-    // 3. Configurar aldea inicial
     aldea_actual = mundo_superior;
-    
-    // (Aquí faltaría implementar la creación del mundo paralelo y los items)
 }
-
 int esta_en_aldea() {
     // Implementación simple - asumimos que si no estamos en una mazmorra, estamos en una aldea
     // Esto debería refinarse según tu lógica de juego
