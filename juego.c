@@ -14,7 +14,7 @@ void jugar(Aldea *inicio) {
 
     while (vidas > 0) {
         printf("\n📍 Estás en %s (%s) | ❤️   %d | 💰 %d\n", aldea_actual->nombre,
-               aldea_actual->mundo == 0 ? "🌍 " : "🌌", vidas, monedas);
+               aldea_actual->mundo == 0 ? "🌍 " : " 🌌 ", vidas, monedas);
         printf("Comandos disponibles: busq, maz, compr, sig, ant, trans\n> ");
         scanf("%s", comando);
 
