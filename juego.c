@@ -36,7 +36,7 @@ void jugar(Aldea *inicio) {
             int busqueda_realizada = 0;
 
             while (mazmorra_activa && vidas > 0) {
-                printf("\n🏰 Mazmorra: %s | ❤️   %d | 💰 %d\n", m->nombre, vidas, monedas);
+                printf("\n🏰 Mazmorra: %s | ❤️  %d | 💰 %d\n", m->nombre, vidas, monedas);
                 printf("Comandos: busq, atac, ant, sig\n> ");
                 scanf("%s", comando);
 
