@@ -128,27 +128,32 @@ void jugar(Aldea *inicio) {
         }
 
         else if (strcmp(comando, "sig") == 0) {
-            if (aldea_actual->sig) {
-                aldea_actual = aldea_actual->sig;
-                monedas += 10;
-                if (rand() % 2 == 0) {
-                    vidas--;
-                    printf("⚠️ Perdiste una vida en el camino.\n");
-                }
-            } else printf("🚧 No hay aldea siguiente.\n");
+    if (aldea_actual->sig) {
+        printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->sig->nombre);
+        monedas += 10;
+        aldea_actual = aldea_actual->sig;
+        if (rand() % 2 == 0) {
+            vidas--;
+            printf("⚠️ Perdiste una vida en el camino.\n");
         }
+    } else {
+        printf("🚧 No hay aldea siguiente.\n");
+    }
+}
 
-        else if (strcmp(comando, "ant") == 0) {
-            if (aldea_actual->ant) {
-                aldea_actual = aldea_actual->ant;
-                monedas += 10;
-                if (rand() % 2 == 0) {
-                    vidas--;
-                    printf("⚠️ Perdiste una vida en el camino.\n");
-                }
-            } else printf("🍼 No puedes retroceder más.\n");
+else if (strcmp(comando, "ant") == 0) {
+    if (aldea_actual->ant) {
+        printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->ant->nombre);
+        monedas += 10;
+        aldea_actual = aldea_actual->ant;
+        if (rand() % 2 == 0) {
+            vidas--;
+            printf("⚠️ Perdiste una vida en el camino.\n");
         }
-
+    } else {
+        printf("🍼 No puedes retroceder más.\n");
+    }
+}
         else if (strcmp(comando, "trans") == 0) {
             if (desbloqueo_mundo_paralelo && aldea_actual->vinculada) {
                 aldea_actual = aldea_actual->vinculada;

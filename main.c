@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include "estructuras.h"
 #include "mundo.h"
 #include "juego.h"

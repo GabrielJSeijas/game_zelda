@@ -3,6 +3,7 @@
 #include <string.h>
 #include <time.h>
 #include "estructuras.h"
+#include <stdbool.h>
 
 Aldea *crearMundo(int n_aldeas) {
     const char *bases[] = {"Agua", "Tierra", "Fuego", "Aire"};
@@ -11,24 +12,42 @@ Aldea *crearMundo(int n_aldeas) {
     Aldea *inicio = NULL, *prev = NULL;
     Item *lista_items = NULL;
     Item *item_actual = NULL;
-    int total_items = n_aldeas * 2; // para ambos mundos
-
-    // Crear lista de ítems
-    for (int i = 0; i < total_items; i++) {
+    
+    // === CREACIÓN DE ÍTEMS ===
+    // 1. Crear ítem de tienda principal
+    Item *tienda_principal = malloc(sizeof(Item));
+    strcpy(tienda_principal->nombre, "Ítem de tienda");
+    tienda_principal->conseguido = 0;
+    tienda_principal->usada_en = NULL;
+    tienda_principal->sig = NULL;
+    lista_items = tienda_principal;
+    
+    // 2. Crear ítems normales (1 a n_aldeas)
+    for (int i = 1; i <= n_aldeas; i++) {
         Item *nuevo = malloc(sizeof(Item));
-        snprintf(nuevo->nombre, MAX_NOMBRE, "Ítem-%d", i + 1);
+        snprintf(nuevo->nombre, MAX_NOMBRE, "Ítem %d", i);
         nuevo->conseguido = 0;
         nuevo->usada_en = NULL;
         nuevo->sig = lista_items;
         lista_items = nuevo;
     }
-
+    
+    // 3. Crear ítems paralelos (1 (P) a n_aldeas (P))
+    for (int i = 1; i <= n_aldeas; i++) {
+        Item *nuevo = malloc(sizeof(Item));
+        snprintf(nuevo->nombre, MAX_NOMBRE, "Ítem %d (P)", i);
+        nuevo->conseguido = 0;
+        nuevo->usada_en = NULL;
+        nuevo->sig = lista_items;
+        lista_items = nuevo;
+    }
+    
     item_actual = lista_items;
 
     // === CREAR MUNDO SUPERIOR ===
     for (int i = 0; i < n_aldeas; i++) {
         Aldea *aldea = malloc(sizeof(Aldea));
-        snprintf(aldea->nombre, MAX_NOMBRE, "Aldea de %s", bases[i % base_count]);
+        generarNombreAldea(i + 1, aldea->nombre, MAX_NOMBRE);
         aldea->oculto = NULL;
         aldea->sig = NULL;
         aldea->ant = prev;
@@ -48,33 +67,45 @@ Aldea *crearMundo(int n_aldeas) {
 
         aldea->mazmorra = maz;
 
-        // Asignar ítem oculto a aldea
-        if (rand() % 2 == 0 && item_actual) {
-            aldea->oculto = item_actual;
-            item_actual = item_actual->sig;
-        }
-
-        // Asignar ítem oculto a mazmorra
-        if (rand() % 2 == 0 && item_actual) {
-            maz->oculto = item_actual;
-            item_actual = item_actual->sig;
-        }
-
-        // Asignar ítem requerido para derrotarla
-        if (i == 0) {
-            Item *tienda = malloc(sizeof(Item));
-            strcpy(tienda->nombre, "Ítem de tienda");
-            tienda->conseguido = 0;
-            tienda->usada_en = maz;
-            tienda->sig = lista_items;
-            lista_items = tienda;
-            maz->requiere = tienda;
-        } else {
+        // Asignar ítem oculto a aldea (usar ítems normales)
+        if (rand() % 2 == 0) {
+            // Buscar un ítem normal no asignado (nombre sin "(P)")
             Item *iter = lista_items;
             while (iter) {
-                if (iter->usada_en == NULL) {
-                    iter->usada_en = maz;
+                if (iter->usada_en == NULL && strstr(iter->nombre, "(P)") == NULL && iter != tienda_principal) {
+                    aldea->oculto = iter;
+                    iter->usada_en = aldea; // Marcamos que está usado
+                    break;
+                }
+                iter = iter->sig;
+            }
+        }
+
+        // Asignar ítem oculto a mazmorra (usar ítems normales)
+        if (rand() % 2 == 0) {
+            Item *iter = lista_items;
+            while (iter) {
+                if (iter->usada_en == NULL && strstr(iter->nombre, "(P)") == NULL && iter != tienda_principal) {
+                    maz->oculto = iter;
+                    iter->usada_en = maz; // Marcamos que está usado
+                    break;
+                }
+                iter = iter->sig;
+            }
+        }
+
+        // Asignar ítem requerido para derrotar la mazmorra
+        if (i == 0) {
+            // Primera mazmorra requiere el ítem de tienda
+            maz->requiere = tienda_principal;
+            tienda_principal->usada_en = maz;
+        } else {
+            // Buscar un ítem normal no asignado
+            Item *iter = lista_items;
+            while (iter) {
+                if (iter->usada_en == NULL && strstr(iter->nombre, "(P)") == NULL && iter != tienda_principal) {
                     maz->requiere = iter;
+                    iter->usada_en = maz;
                     break;
                 }
                 iter = iter->sig;
@@ -113,27 +144,40 @@ Aldea *crearMundo(int n_aldeas) {
 
         aldea_p->mazmorra = maz_p;
 
-        // Asignar ítem requerido a la mazmorra paralela
+        // Asignar ítem requerido a la mazmorra paralela (usar ítems paralelos)
         Item *iter_p = lista_items;
         while (iter_p) {
-            if (iter_p->usada_en == NULL) {
-                iter_p->usada_en = maz_p;
-                snprintf(iter_p->nombre, MAX_NOMBRE, "%s (P)", iter_p->nombre);
+            if (iter_p->usada_en == NULL && strstr(iter_p->nombre, "(P)") != NULL) {
                 maz_p->requiere = iter_p;
+                iter_p->usada_en = maz_p;
                 break;
             }
             iter_p = iter_p->sig;
         }
 
-        // Ítems ocultos en aldea o mazmorra paralela
-        if (rand() % 2 == 0 && item_actual) {
-            aldea_p->oculto = item_actual;
-            item_actual = item_actual->sig;
+        // Ítems ocultos en aldea o mazmorra paralela (usar ítems paralelos)
+        if (rand() % 2 == 0) {
+            Item *iter = lista_items;
+            while (iter) {
+                if (iter->usada_en == NULL && strstr(iter->nombre, "(P)") != NULL) {
+                    aldea_p->oculto = iter;
+                    iter->usada_en = aldea_p;
+                    break;
+                }
+                iter = iter->sig;
+            }
         }
 
-        if (rand() % 2 == 0 && item_actual) {
-            maz_p->oculto = item_actual;
-            item_actual = item_actual->sig;
+        if (rand() % 2 == 0) {
+            Item *iter = lista_items;
+            while (iter) {
+                if (iter->usada_en == NULL && strstr(iter->nombre, "(P)") != NULL) {
+                    maz_p->oculto = iter;
+                    iter->usada_en = maz_p;
+                    break;
+                }
+                iter = iter->sig;
+            }
         }
 
         tmp = tmp->sig;
@@ -143,16 +187,109 @@ Aldea *crearMundo(int n_aldeas) {
     printf("\n🌍 Mundo superior:\n");
     tmp = inicio;
     while (tmp) {
-        printf("🔸 %s - Mazmorra: %s\n", tmp->nombre, tmp->mazmorra->nombre);
+        printf("🔸 %s - Mazmorra: %s | Requiere: %s\n", 
+               tmp->nombre, 
+               tmp->mazmorra->nombre,
+               tmp->mazmorra->requiere ? tmp->mazmorra->requiere->nombre : "Nada");
         tmp = tmp->sig;
     }
 
     printf("\n🌌 Mundo paralelo:\n");
     tmp = inicio_paralelo;
     while (tmp) {
-        printf("🔹 %s - Mazmorra: %s\n", tmp->nombre, tmp->mazmorra->nombre);
+        printf("🔹 %s - Mazmorra: %s | Requiere: %s\n", 
+               tmp->nombre, 
+               tmp->mazmorra->nombre,
+               tmp->mazmorra->requiere ? tmp->mazmorra->requiere->nombre : "Nada");
         tmp = tmp->sig;
     }
 
     return inicio;
+}
+
+#define MAX_ELEMENTS 4
+#define MAX_COMBINATION 10 // Máximo de elementos a combinar (para evitar desbordamientos)
+
+const char *elements[MAX_ELEMENTS] = {"Agua", "Tierra", "Fuego", "Aire"};
+
+// Función para generar combinaciones
+void generarNombreAldea(int mundo_num, char *nombre, size_t buffer_size) {
+    // Casos base (mundos 1-4)
+    if (mundo_num <= 4) {
+        snprintf(nombre, buffer_size, "%s", elements[mundo_num - 1]);
+        return;
+    }
+
+    int combinacion = 2; // Empezamos con combinaciones de 2
+    int mundo_base = 5;  // El mundo 5 es donde empiezan las combinaciones
+    bool nombre_generado = false;
+
+    // Generar combinaciones sin repetición
+    while (!nombre_generado && combinacion <= MAX_ELEMENTS) {
+        // Calcular cuántas combinaciones posibles hay para este nivel
+        int combinaciones_posibles = combinacionesSinRepeticion(MAX_ELEMENTS, combinacion);
+        
+        if (mundo_num < mundo_base + combinaciones_posibles) {
+            generarCombinacionUnica(mundo_num - mundo_base, combinacion, nombre, buffer_size);
+            nombre_generado = true;
+        } else {
+            mundo_base += combinaciones_posibles;
+            combinacion++;
+        }
+    }
+
+    // Si se agotan las combinaciones únicas, usar repeticiones
+    if (!nombre_generado) {
+        int elemento_base = (mundo_num - 1) % MAX_ELEMENTS;
+        int repeticiones = ((mundo_num - 1) / MAX_ELEMENTS) + 1;
+        
+        // Construir nombre con repeticiones
+        char temp[256] = "";
+        for (int i = 0; i < repeticiones; i++) {
+            if (i > 0) {
+                strncat(temp, "-", sizeof(temp) - strlen(temp) - 1);
+            }
+            strncat(temp, elements[elemento_base], sizeof(temp) - strlen(temp) - 1);
+        }
+        snprintf(nombre, buffer_size, "%s", temp);
+    }
+}
+
+// Función auxiliar para generar combinaciones únicas (sin repetición de elementos)
+void generarCombinacionUnica(int index, int combinacion, char *nombre, size_t buffer_size) {
+    char temp[256] = "";
+    int elementos[MAX_ELEMENTS] = {0};
+    int pos = 0;
+    
+    // Convertir el índice a combinación única
+    for (int i = 0; i < combinacion; i++) {
+        while (1) {
+            if (elementos[pos % MAX_ELEMENTS] == 0) {
+                if (index >= combinacionesSinRepeticion(MAX_ELEMENTS - pos - 1, combinacion - i - 1)) {
+                    index -= combinacionesSinRepeticion(MAX_ELEMENTS - pos - 1, combinacion - i - 1);
+                    pos++;
+                } else {
+                    break;
+                }
+            } else {
+                pos++;
+            }
+        }
+        elementos[pos % MAX_ELEMENTS] = 1;
+        
+        if (i > 0) {
+            strncat(temp, "-", sizeof(temp) - strlen(temp) - 1);
+        }
+        strncat(temp, elements[pos % MAX_ELEMENTS], sizeof(temp) - strlen(temp) - 1);
+        pos++;
+    }
+    
+    snprintf(nombre, buffer_size, "%s", temp);
+}
+
+// Función para calcular combinaciones sin repetición (n choose k)
+int combinacionesSinRepeticion(int n, int k) {
+    if (k == 0 || k == n) return 1;
+    if (k > n) return 0;
+    return combinacionesSinRepeticion(n - 1, k - 1) + combinacionesSinRepeticion(n - 1, k);
 }
