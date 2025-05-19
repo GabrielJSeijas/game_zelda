@@ -10,11 +10,35 @@ void jugar(Aldea *inicio) {
     char comando[32];
     int desbloqueo_mundo_paralelo = 0;
 
-    printf("\n🎮 ¡Comienza tu aventura en %s!\n", aldea_actual->nombre);
+    // Contar mazmorras totales y no derrotadas
+    int total_mazmorras = 0;
+    int mazmorras_no_derrotadas = 0;
+    Aldea *tmp = inicio;
+    while (tmp) {
+        total_mazmorras++;
+        if (!tmp->mazmorra->derrotada) mazmorras_no_derrotadas++;
+        if (tmp->vinculada) {
+            total_mazmorras++;
+            if (!tmp->vinculada->mazmorra->derrotada) mazmorras_no_derrotadas++;
+        }
+        tmp = tmp->sig;
+    }
 
-    while (vidas > 0) {
-        printf("\n📍 Estás en %s (%s) | ❤️   %d | 💰 %d\n", aldea_actual->nombre,
-               aldea_actual->mundo == 0 ? "🌍 " : " 🌌 ", vidas, monedas);
+    printf("\n🎮 ¡Comienza tu aventura en %s! Mazmorras restantes: %d/%d\n", 
+           aldea_actual->nombre, mazmorras_no_derrotadas, total_mazmorras);
+    printf("\n🌟 Bienvenido al mundo de Link, señor Aang. Te deseo buena suerte para escapar con vida.\n");
+printf("👹 ¡Cuidado! Pueden haber mounstros de camino de una aldea a otra. Sé cuidadoso con tus vidas.\n");
+printf("⚔️ Ten cuidado al intentar derrotar al jefe de una mazmorra sin el ítem requerido - perderás vidas.\n");
+printf("🔍 Usa 'busq' en aldeas y mazmorras para encontrar ítems ocultos que te ayudarán en tu aventura.\n");
+printf("💼 Visita la tienda ('compr') para curarte o conseguir el ítem especial cuando estés en la aldea inicial.\n");
+printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al mundo paralelo con 'trans'.\n");
+
+    while (vidas > 0 && mazmorras_no_derrotadas > 0) {
+        printf("\n📍 Estás en %s (%s) | ❤️ %d | 💰 %d | Mazmorras: %d/%d\n", 
+               aldea_actual->nombre,
+               aldea_actual->mundo == 0 ? "🌍" : "🌌", 
+               vidas, monedas,
+               mazmorras_no_derrotadas, total_mazmorras);
         printf("Comandos disponibles: busq, maz, compr, sig, ant, trans\n> ");
         scanf("%s", comando);
 
@@ -36,7 +60,7 @@ void jugar(Aldea *inicio) {
             int busqueda_realizada = 0;
 
             while (mazmorra_activa && vidas > 0) {
-                printf("\n🏰 Mazmorra: %s | ❤️  %d | 💰 %d\n", m->nombre, vidas, monedas);
+                printf("\n🏰 Mazmorra: %s | ❤️ %d | 💰 %d\n", m->nombre, vidas, monedas);
                 printf("Comandos: busq, atac, ant, sig\n> ");
                 scanf("%s", comando);
 
@@ -65,11 +89,22 @@ void jugar(Aldea *inicio) {
                 else if (strcmp(comando, "atac") == 0) {
                     if (m->requiere && m->requiere->conseguido) {
                         printf("⚔️ ¡Has derrotado la mazmorra!\n");
+                        if (!m->derrotada) {
+                            m->derrotada = 1;
+                            mazmorras_no_derrotadas--;
+                            printf("Mazmorras restantes: %d/%d\n", mazmorras_no_derrotadas, total_mazmorras);
+                        }
                         desbloqueo_mundo_paralelo = 1;
                         mazmorra_activa = 0;
+
+                        if (mazmorras_no_derrotadas == 0) {
+                            printf("\n🎉 ¡FELICIDADES! ¡Has derrotado todas las mazmorras y ganado el juego! 🎉\n");
+                            return;  // Salir de la función, terminando el juego con victoria
+                        }
                     } else {
                         printf("🛡️ No tienes el ítem requerido (%s). Pierdes una vida.\n", m->requiere->nombre);
                         vidas--;
+                        if (vidas <= 0) break;
                     }
                 }
 
@@ -128,32 +163,33 @@ void jugar(Aldea *inicio) {
         }
 
         else if (strcmp(comando, "sig") == 0) {
-    if (aldea_actual->sig) {
-        printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->sig->nombre);
-        monedas += 10;
-        aldea_actual = aldea_actual->sig;
-        if (rand() % 2 == 0) {
-            vidas--;
-            printf("⚠️ Perdiste una vida en el camino.\n");
+            if (aldea_actual->sig) {
+                printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->sig->nombre);
+                monedas += 10;
+                aldea_actual = aldea_actual->sig;
+                if (rand() % 2 == 0) {
+                    vidas--;
+                    printf("⚠️ Perdiste una vida en el camino.\n");
+                }
+            } else {
+                printf("🚧 No hay aldea siguiente.\n");
+            }
         }
-    } else {
-        printf("🚧 No hay aldea siguiente.\n");
-    }
-}
 
-else if (strcmp(comando, "ant") == 0) {
-    if (aldea_actual->ant) {
-        printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->ant->nombre);
-        monedas += 10;
-        aldea_actual = aldea_actual->ant;
-        if (rand() % 2 == 0) {
-            vidas--;
-            printf("⚠️ Perdiste una vida en el camino.\n");
+        else if (strcmp(comando, "ant") == 0) {
+            if (aldea_actual->ant) {
+                printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->ant->nombre);
+                monedas += 10;
+                aldea_actual = aldea_actual->ant;
+                if (rand() % 2 == 0) {
+                    vidas--;
+                    printf("⚠️ Perdiste una vida en el camino.\n");
+                }
+            } else {
+                printf("🍼 No puedes retroceder más.\n");
+            }
         }
-    } else {
-        printf("🍼 No puedes retroceder más.\n");
-    }
-}
+
         else if (strcmp(comando, "trans") == 0) {
             if (desbloqueo_mundo_paralelo && aldea_actual->vinculada) {
                 aldea_actual = aldea_actual->vinculada;
@@ -166,5 +202,10 @@ else if (strcmp(comando, "ant") == 0) {
         }
     }
 
-    printf("\n💀 Game Over. Has perdido todas tus vidas.\n");
+    // Fuera del bucle principal, verificar por qué terminó el juego
+    if (vidas <= 0) {
+        printf("\n💀 Game Over. Has perdido todas tus vidas.\n");
+    } else if (mazmorras_no_derrotadas == 0) {
+        printf("\n🎉 ¡FELICIDADES! ¡Has derrotado todas las mazmorras escapaste del mundo de Link! 🎉\n");
+    }
 }

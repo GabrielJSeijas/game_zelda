@@ -20,6 +20,7 @@ struct Mazmorra {
     Item *oculto;
     Aldea *origen;
     struct Mazmorra *sig;
+    int derrotada;
 };
 
 struct Aldea {
