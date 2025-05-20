@@ -141,29 +141,37 @@ void jugar(Aldea *inicio) {
             switch (opcion) {
                 case 1:
                     if (monedas >= 5 && vidas < 127) {
-                        monedas -= 5; vidas++;
-                        printf("❤️ Recuperaste una vida.\n");
+                    monedas -= 5; vidas++;
+                    printf("❤️ Recuperaste una vida.\n");
                     } else printf("❌ No puedes comprar eso.\n");
-                    break;
+                break;
                 case 2:
                     if (monedas >= 25) {
-                        monedas -= 25;
-                        Item *it = aldea_actual->mazmorra->requiere;
-                        if (strcmp(it->nombre, "Item de tienda") == 0) {
-                            it->conseguido = 1;
+                    // Buscar el ítem de tienda principal en la lista de ítems
+                    Aldea *tmp = inicio;
+                    while (tmp) {
+                        if (tmp->mazmorra->requiere && strstr(tmp->mazmorra->requiere->nombre, "tienda") != NULL) {
+                            tmp->mazmorra->requiere->conseguido = 1;
+                            monedas -= 25;
                             printf("✅ Compraste el item de tienda.\n");
-                        } else printf("Ese ítem no está disponible aquí.\n");
-                    } else printf("❌ Dinero insuficiente.\n");
-                    break;
-                case 3:
-                    if (monedas >= 100 && vidas < 127) {
-                        monedas -= 100; vidas++;
-                        printf("💖 Vida adicional adquirida.\n");
-                    } else printf("❌ No puedes comprar eso.\n");
-                    break;
-                default: printf("⛔ Compra cancelada.\n");
-            }
-        }
+                            break;
+                        }
+                        tmp = tmp->sig;
+                }
+                if (!tmp) {
+                    printf("Ese ítem no está disponible aquí.\n");
+                }
+            } else printf("❌ Dinero insuficiente.\n");
+            break;
+        case 3:
+            if (monedas >= 100 && vidas < 127) {
+                monedas -= 100; vidas++;
+                printf("💖 Vida adicional adquirida.\n");
+            } else printf("❌ No puedes comprar eso.\n");
+            break;
+        default: printf("⛔ Compra cancelada.\n");
+    }
+}
 
         else if (strcmp(comando, "sig") == 0) {
             if (aldea_actual->sig) {
