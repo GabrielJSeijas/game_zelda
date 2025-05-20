@@ -4,16 +4,22 @@
 #include <time.h>
 #include "estructuras.h"
 #include <stdbool.h>
+#include "items.h"
+
+
+void generarNombreAldea(int, char *, size_t);
+void verificarAccesibilidad(Aldea *, Aldea *, int, Item **, Item **, Item *);
+void verificarRequeridos(Aldea *, Aldea *, int);
+void hacerAccesible(Item *, Aldea *, Aldea *);
+void generarCombinacionUnica(int, int, char *, size_t);
+int combinacionesSinRepeticion(int, int);
+
 
  bool itemAccesible(Item *item, Aldea *mundo, Aldea *mundo_paralelo);
 Aldea *crearMundo(int n_aldeas) {
    
-    const char *bases[] = {"Agua", "Tierra", "Fuego", "Aire"};
-    int base_count = sizeof(bases) / sizeof(bases[0]);
-
     Aldea *inicio = NULL, *prev = NULL;
     Item *lista_items = NULL;
-    Item *item_actual = NULL;
 
     
     // === CREACIÓN DE ÍTEMS ===
@@ -27,25 +33,36 @@ Aldea *crearMundo(int n_aldeas) {
 
     // 2. Crear ítems normales (1 a n_aldeas)
     Item **items_normales = malloc(n_aldeas * sizeof(Item*));
+    int n_bases = sizeof(bases) / sizeof(bases[0]);
+    int n_attrs = sizeof(atributos) / sizeof(atributos[0]);
+
     for (int i = 0; i < n_aldeas; i++) {
+        int base_idx = rand() % n_bases;
+        int attr_idx = rand() % n_attrs;
+        // Asegurarse de que no se repitan combinaciones
         items_normales[i] = malloc(sizeof(Item));
-        snprintf(items_normales[i]->nombre, MAX_NOMBRE, "Ítem %d", i+1);
+        snprintf(items_normales[i]->nombre, MAX_NOMBRE, "%s %s", bases[base_idx], atributos[attr_idx]);
         items_normales[i]->conseguido = 0;
         items_normales[i]->usada_en = NULL;
         items_normales[i]->sig = lista_items;
         lista_items = items_normales[i];
-    }
+}
+
     
     // 3. Crear ítems paralelos
     Item **items_paralelos = malloc(n_aldeas * sizeof(Item*));
     for (int i = 0; i < n_aldeas; i++) {
+        int base_idx = rand() % n_bases;
+        int attr_idx = rand() % n_attrs;
+
         items_paralelos[i] = malloc(sizeof(Item));
-        snprintf(items_paralelos[i]->nombre, MAX_NOMBRE, "Ítem %d (P)", i+1);
+        snprintf(items_paralelos[i]->nombre, MAX_NOMBRE, "%s %s (P)", bases[base_idx], atributos[attr_idx]);
         items_paralelos[i]->conseguido = 0;
         items_paralelos[i]->usada_en = NULL;
         items_paralelos[i]->sig = lista_items;
         lista_items = items_paralelos[i];
-    }
+}
+
 
     // === CREAR MUNDO SUPERIOR ===
     int *asignados_requiere = calloc(n_aldeas, sizeof(int));
@@ -106,7 +123,7 @@ Aldea *crearMundo(int n_aldeas) {
             int item_idx = disponibles_ocultos[idx];
             
             aldea->oculto = items_normales[item_idx];
-            items_normales[item_idx]->usada_en = aldea;
+            items_normales[item_idx]->usada_en = maz;
             
             // Eliminar este índice de los disponibles
             disponibles_ocultos[idx] = disponibles_ocultos[disponibles_ocultos_count-1];
@@ -143,7 +160,7 @@ Aldea *crearMundo(int n_aldeas) {
     
     while (tmp) {
         Aldea *aldea_p = malloc(sizeof(Aldea));
-        snprintf(aldea_p->nombre, MAX_NOMBRE, "%s (P)", tmp->nombre);
+        snprintf(aldea_p->nombre, MAX_NOMBRE, "%.70s (P)", tmp->nombre);
         aldea_p->oculto = NULL;
         aldea_p->sig = NULL;
         aldea_p->ant = prev_paralelo;
@@ -185,7 +202,7 @@ Aldea *crearMundo(int n_aldeas) {
             int item_idx = disponibles_ocultos[idx];
             
             aldea_p->oculto = items_paralelos[item_idx];
-            items_paralelos[item_idx]->usada_en = aldea_p;
+            items_paralelos[item_idx]->usada_en = aldea_p->mazmorra;
             
             // Eliminar este índice de los disponibles
             disponibles_ocultos[idx] = disponibles_ocultos[disponibles_ocultos_count-1];
@@ -237,7 +254,7 @@ Aldea *crearMundo(int n_aldeas) {
                 while (tmp_aldea) {
                     if (tmp_aldea->oculto == NULL) {
                         tmp_aldea->oculto = items_paralelos[i];
-                        items_paralelos[i]->usada_en = tmp_aldea;
+                        items_paralelos[i]->usada_en = tmp->mazmorra;
                         break;
                     }
                     tmp_aldea = tmp_aldea->sig;
@@ -266,7 +283,7 @@ Aldea *crearMundo(int n_aldeas) {
                 while (tmp_aldea) {
                     if (tmp_aldea->oculto == NULL) {
                         tmp_aldea->oculto = items_normales[i];
-                        items_normales[i]->usada_en = tmp_aldea;
+                        items_normales[i]->usada_en = tmp->mazmorra;
                         break;
                     }
                     tmp_aldea = tmp_aldea->sig;
@@ -283,12 +300,10 @@ Aldea *crearMundo(int n_aldeas) {
     printf("\n🌍 Mundo superior:\n");
     tmp = inicio;
     while (tmp) {
-        printf("🔸 %s - Mazmorra: %s | Requiere: %s \n", 
-               tmp->nombre, 
-               tmp->mazmorra->nombre,
-               tmp->mazmorra->requiere ? tmp->mazmorra->requiere->nombre : "Nada",
-               tmp->oculto ? tmp->oculto->nombre : "Nada",
-               tmp->mazmorra->oculto ? tmp->mazmorra->oculto->nombre : "Nada");
+        printf("🔸 %s - Mazmorra: %s | Requiere: %s\n",
+            tmp->nombre,
+            tmp->mazmorra->nombre,
+            tmp->mazmorra->requiere ? tmp->mazmorra->requiere->nombre : "Nada");
         tmp = tmp->sig;
     }
 
@@ -296,11 +311,9 @@ Aldea *crearMundo(int n_aldeas) {
     tmp = inicio_paralelo;
     while (tmp) {
         printf("🔹 %s - Mazmorra: %s | Requiere: %s \n", 
-               tmp->nombre, 
-               tmp->mazmorra->nombre,
-               tmp->mazmorra->requiere ? tmp->mazmorra->requiere->nombre : "Nada",
-               tmp->oculto ? tmp->oculto->nombre : "Nada",
-               tmp->mazmorra->oculto ? tmp->mazmorra->oculto->nombre : "Nada");
+            tmp->nombre,
+            tmp->mazmorra->nombre,
+            tmp->mazmorra->requiere ? tmp->mazmorra->requiere->nombre : "Nada");
         tmp = tmp->sig;
     }
 
@@ -326,7 +339,7 @@ void verificarAccesibilidad(Aldea *mundo, Aldea *mundo_paralelo, int n_aldeas,
             
             if (tmp->oculto == NULL) {
                 tmp->oculto = items_normales[i];
-                items_normales[i]->usada_en = tmp;
+                items_normales[i]->usada_en = tmp->mazmorra;
             } else if (tmp->mazmorra->oculto == NULL) {
                 tmp->mazmorra->oculto = items_normales[i];
                 items_normales[i]->usada_en = tmp->mazmorra;
@@ -344,7 +357,7 @@ void verificarAccesibilidad(Aldea *mundo, Aldea *mundo_paralelo, int n_aldeas,
             
             if (tmp->oculto == NULL) {
                 tmp->oculto = items_paralelos[i];
-                items_paralelos[i]->usada_en = tmp;
+                items_paralelos[i]->usada_en = tmp->mazmorra;
             } else if (tmp->mazmorra->oculto == NULL) {
                 tmp->mazmorra->oculto = items_paralelos[i];
                 items_paralelos[i]->usada_en = tmp->mazmorra;
@@ -411,7 +424,7 @@ void hacerAccesible(Item *item, Aldea *mundo, Aldea *mundo_paralelo) {
     while (tmp) {
         if (tmp->oculto == NULL) {
             tmp->oculto = item;
-            item->usada_en = tmp;
+            item->usada_en = tmp->mazmorra;
             return;
         }
         if (tmp->mazmorra->oculto == NULL) {
@@ -427,7 +440,7 @@ void hacerAccesible(Item *item, Aldea *mundo, Aldea *mundo_paralelo) {
     while (tmp) {
         if (tmp->oculto == NULL) {
             tmp->oculto = item;
-            item->usada_en = tmp;
+            item->usada_en = tmp->mazmorra;
             return;
         }
         if (tmp->mazmorra->oculto == NULL) {

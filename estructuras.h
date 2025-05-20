@@ -1,7 +1,7 @@
 #ifndef ESTRUCTURAS_H
 #define ESTRUCTURAS_H
 
-#define MAX_NOMBRE 64
+#define MAX_NOMBRE 80
 #define MAX_ITEMS 32
 
 typedef struct Mazmorra Mazmorra;

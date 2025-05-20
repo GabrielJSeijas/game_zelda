@@ -24,19 +24,22 @@ void jugar(Aldea *inicio) {
         tmp = tmp->sig;
     }
 
-    printf("\n🎮 ¡Comienza tu aventura en %s! Mazmorras restantes: %d/%d\n", 
-           aldea_actual->nombre, mazmorras_no_derrotadas, total_mazmorras);
-    printf("\n🌟 Bienvenido al mundo de Link, señor Aang. Te deseo buena suerte para escapar con vida.\n");
-printf("👹 ¡Cuidado! Pueden haber mounstros de camino de una aldea a otra. Sé cuidadoso con tus vidas.\n");
-printf("⚔️ Ten cuidado al intentar derrotar al jefe de una mazmorra sin el ítem requerido - perderás vidas.\n");
-printf("🔍 Usa 'busq' en aldeas y mazmorras para encontrar ítems ocultos que te ayudarán en tu aventura.\n");
-printf("💼 Visita la tienda ('compr') para curarte o conseguir el ítem especial cuando estés en la aldea inicial.\n");
-printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al mundo paralelo con 'trans'.\n");
+    printf("\n🌟 Bienvenido al universo de Yggdrasil.");
+    printf("\n\n💎 Eres un guerrero destinado a cruzar los nueve mundos y enfrentar a sus guardianes.");
+    printf("\n👹 Cuidado con los draugar y bestias que acechan entre reinos. Pueden quitarte vidas al desplazarte.");
+    printf("\n⚔️  Solo los dignos pueden vencer a los guardianes de cada reino. Sin el artefacto sagrado, perderás vidas.");
+    printf("\n🔍 Busca en cada reino reliquias de los dioses ocultas en los rincones más peligrosos.");
+    printf("\n💼 Acude al herrero rúnico ('compr') para sanar o forjar artefactos únicos.");
+    printf("\n🌌 Tras vencer a tu primer guardián, accederás a los mundos paralelos de los elfos y los muertos con 'trans'.");
+    printf("\n🌿 Los Fragmentos de Yggdrasil son la energía vital del árbol del mundo. Úsalos para comerciar, curarte o obtener artefactos sagrados.");
+    printf("\n\n¡Buena suerte, guerrero! Que los dioses te guíen en tu travesía.\n");
+
+    printf("\n\n🎮 ¡Comienza tu aventura en %s!\n", aldea_actual->nombre);
 
     while (vidas > 0 && mazmorras_no_derrotadas > 0) {
-        printf("\n📍 Estás en %s (%s) | ❤️ %d | 💰 %d | Mazmorras: %d/%d\n", 
+        printf("\n📍 Estás en %s (%s) |  ❤️  %d | 🌿 %d | Mazmorras: %d/%d\n", 
                aldea_actual->nombre,
-               aldea_actual->mundo == 0 ? "🌍" : "🌌", 
+               aldea_actual->mundo == 0 ? "🌍 " : "🌌 ", 
                vidas, monedas,
                mazmorras_no_derrotadas, total_mazmorras);
         printf("Comandos disponibles: busq, maz, compr, sig, ant, trans\n> ");
@@ -47,7 +50,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
                 printf("🔎 Has encontrado el ítem oculto: %s\n", aldea_actual->oculto->nombre);
                 aldea_actual->oculto->conseguido = 1;
             } else {
-                printf("❌ No hay ítem oculto. Te dicen que el ítem que derrota esta mazmorra es: %s\n",
+                printf("❌ No hay ningún artefacto rúnico. Un viejo sabio te dice que necesitas %s para derrotar esta mazmorra\n",
                        aldea_actual->mazmorra->requiere->nombre);
             }
         }
@@ -60,7 +63,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
             int busqueda_realizada = 0;
 
             while (mazmorra_activa && vidas > 0) {
-                printf("\n🏰 Mazmorra: %s | ❤️ %d | 💰 %d\n", m->nombre, vidas, monedas);
+                printf("\n 🏰  Mazmorra: %s | ❤️ %d | 🌿 %d\n", m->nombre, vidas, monedas);
                 printf("Comandos: busq, atac, ant, sig\n> ");
                 scanf("%s", comando);
 
@@ -76,7 +79,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
                             printf("🔎 Encontraste el ítem oculto: %s\n", m->oculto->nombre);
                             m->oculto->conseguido = 1;
                         } else {
-                            printf("💰 No hay ítem oculto. Ganaste $10\n");
+                            printf("🌿 No hay ítem oculto. Ganaste Fragmentos10\n");
                             monedas += 10;
                         }
                         busqueda_realizada = 1;
@@ -98,7 +101,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
                         mazmorra_activa = 0;
 
                         if (mazmorras_no_derrotadas == 0) {
-                            printf("\n🎉 ¡FELICIDADES! ¡Has derrotado todas las mazmorras y ganado el juego! 🎉\n");
+                            printf("\n🎉 ¡VICTORIA! Has recorrido los nueve mundos y derrotado a sus guardianes. Odín te recibe en el Valhalla. 🎉\n");
                             return;  // Salir de la función, terminando el juego con victoria
                         }
                     } else {
@@ -132,7 +135,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
         }
 
         else if (strcmp(comando, "compr") == 0) {
-            printf("🛒 Tienda:\n1. Curar (5$)\n2. Ítem de tienda (25$)\n3. Vida extra (100$)\n> ");
+            printf("🛒 Tienda:\n1. Beber sangre (5🌿)\n2. Item de tienda (25🌿)\n3. Vida extra (100🌿)\n> ");
             int opcion;
             scanf("%d", &opcion);
             switch (opcion) {
@@ -146,9 +149,9 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
                     if (monedas >= 25) {
                         monedas -= 25;
                         Item *it = aldea_actual->mazmorra->requiere;
-                        if (strcmp(it->nombre, "Ítem de tienda") == 0) {
+                        if (strcmp(it->nombre, "Item de tienda") == 0) {
                             it->conseguido = 1;
-                            printf("✅ Compraste el ítem de tienda.\n");
+                            printf("✅ Compraste el item de tienda.\n");
                         } else printf("Ese ítem no está disponible aquí.\n");
                     } else printf("❌ Dinero insuficiente.\n");
                     break;
@@ -164,7 +167,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
 
         else if (strcmp(comando, "sig") == 0) {
             if (aldea_actual->sig) {
-                printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->sig->nombre);
+                printf("🌿 Te has encontrado 10 Fragmentos de camino a %s\n", aldea_actual->sig->nombre);
                 monedas += 10;
                 aldea_actual = aldea_actual->sig;
                 if (rand() % 2 == 0) {
@@ -178,7 +181,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
 
         else if (strcmp(comando, "ant") == 0) {
             if (aldea_actual->ant) {
-                printf("💰 Te has encontrado $10 de camino a %s\n", aldea_actual->ant->nombre);
+                printf("🌿 Te has encontrado 10 Fragmentos de camino a %s\n", aldea_actual->ant->nombre);
                 monedas += 10;
                 aldea_actual = aldea_actual->ant;
                 if (rand() % 2 == 0) {
@@ -193,7 +196,7 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
         else if (strcmp(comando, "trans") == 0) {
             if (desbloqueo_mundo_paralelo && aldea_actual->vinculada) {
                 aldea_actual = aldea_actual->vinculada;
-                printf("🌐 Te transportaste a %s.\n", aldea_actual->nombre);
+                printf(" 🌐 Te transportaste a %s.\n", aldea_actual->nombre);
             } else printf("🚫 No puedes transportarte aún.\n");
         }
 
@@ -204,8 +207,8 @@ printf("🌌 Después de derrotar tu primera mazmorra, podrás transportarte al 
 
     // Fuera del bucle principal, verificar por qué terminó el juego
     if (vidas <= 0) {
-        printf("\n💀 Game Over. Has perdido todas tus vidas.\n");
+        printf("\n💀 Has caído en el campo de batalla. Hel te reclama. Tu alma no verá el Valhalla.\n");
     } else if (mazmorras_no_derrotadas == 0) {
-        printf("\n🎉 ¡FELICIDADES! ¡Has derrotado todas las mazmorras escapaste del mundo de Link! 🎉\n");
+        printf("\n🎉 ¡VICTORIA! Has recorrido los nueve mundos y derrotado a sus guardianes. Odín te recibe en el Valhalla. 🎉\n");
     }
 }

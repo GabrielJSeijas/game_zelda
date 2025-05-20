@@ -7,7 +7,7 @@
 
 int main() {
     int n;
-    printf("¿Cuántas aldeas quieres generar? ");
+    printf("🌍 ¿Cuántos mundos deseas que Yggdrasil te revele?\n> ");
     scanf("%d", &n);
 
     srand(time(NULL));
