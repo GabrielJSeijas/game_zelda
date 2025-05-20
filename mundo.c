@@ -438,21 +438,22 @@ void hacerAccesible(Item *item, Aldea *mundo, Aldea *mundo_paralelo) {
         tmp = tmp->sig;
     }
 }
-#define MAX_ELEMENTS 4
+#define MAX_ELEMENTS 9
 #define MAX_COMBINATION 10 // Máximo de elementos a combinar (para evitar desbordamientos)
 
-const char *elements[MAX_ELEMENTS] = {"Agua", "Tierra", "Fuego", "Aire"};
+const char *elements[MAX_ELEMENTS] = {"Asgard", "Midgard", "Vanaheimr", "Jotunheim", 
+                                      "Alfheim", "Nilfheim", "Svartalfheim", "Muspelheim","helheim"};
 
 // Función para generar combinaciones
 void generarNombreAldea(int mundo_num, char *nombre, size_t buffer_size) {
     // Casos base (mundos 1-4)
-    if (mundo_num <= 4) {
+    if (mundo_num <= 9) {
         snprintf(nombre, buffer_size, "%s", elements[mundo_num - 1]);
         return;
     }
 
     int combinacion = 2; // Empezamos con combinaciones de 2
-    int mundo_base = 5;  // El mundo 5 es donde empiezan las combinaciones
+    int mundo_base = 10;  // El mundo 5 es donde empiezan las combinaciones
     bool nombre_generado = false;
 
     // Generar combinaciones sin repetición
