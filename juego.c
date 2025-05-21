@@ -135,7 +135,7 @@ void jugar(Aldea *inicio) {
         }
 
         else if (strcmp(comando, "compr") == 0) {
-            printf("🛒 Tienda:\n1. Beber sangre (5🌿)\n2. Item de tienda (25🌿)\n3. Vida extra (100🌿)\n> ");
+            printf("🛒 Tienda:\n1. Beber sangre (5🌿)\n2. Item de tienda (25🌿)\n> ");
             int opcion;
             scanf("%d", &opcion);
             switch (opcion) {
@@ -164,11 +164,6 @@ void jugar(Aldea *inicio) {
             } else printf("❌ Dinero insuficiente.\n");
             break;
         case 3:
-            if (monedas >= 100 && vidas < 127) {
-                monedas -= 100; vidas++;
-                printf("💖 Vida adicional adquirida.\n");
-            } else printf("❌ No puedes comprar eso.\n");
-            break;
         default: printf("⛔ Compra cancelada.\n");
     }
 }

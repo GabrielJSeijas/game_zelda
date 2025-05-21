@@ -157,7 +157,7 @@ Aldea *crearMundo(int n_aldeas) {
     }
     disponibles_requiere_count = n_aldeas;
     disponibles_ocultos_count = n_aldeas;
-    
+    // Asignar ítems paralelos
     while (tmp) {
         Aldea *aldea_p = malloc(sizeof(Aldea));
         snprintf(aldea_p->nombre, MAX_NOMBRE, "%.70s (P)", tmp->nombre);
