@@ -3,6 +3,9 @@
 #include <string.h>
 #include "estructuras.h"
 
+
+// Función para jugar el juego
+// Esta función maneja la lógica del juego, incluyendo la interacción con el usuario
 void jugar(Aldea *inicio) {
     Aldea *aldea_actual = inicio;
     int vidas = 3;
@@ -10,7 +13,7 @@ void jugar(Aldea *inicio) {
     char comando[32];
     int desbloqueo_mundo_paralelo = 0;
 
-    // Contar mazmorras totales y no derrotadas
+    // Contamos mazmorras totales y no derrotadas
     int total_mazmorras = 0;
     int mazmorras_no_derrotadas = 0;
     Aldea *tmp = inicio;
@@ -24,6 +27,7 @@ void jugar(Aldea *inicio) {
         tmp = tmp->sig;
     }
 
+    // Mensaje de bienvenida
     printf("\n🌟 Bienvenido al universo de Yggdrasil.");
     printf("\n\n💎 Eres un guerrero destinado a cruzar los nueve mundos y enfrentar a sus guardianes.");
     printf("\n👹 Cuidado con los draugar y bestias que acechan entre reinos. Pueden quitarte vidas al desplazarte.");
@@ -34,8 +38,9 @@ void jugar(Aldea *inicio) {
     printf("\n🌿 Los Fragmentos de Yggdrasil son la energía vital del árbol del mundo. Úsalos para comerciar, curarte o obtener artefactos sagrados.");
     printf("\n\n¡Buena suerte, guerrero! Que los dioses te guíen en tu travesía.\n");
 
+    // Mensaje de inicio
     printf("\n\n🎮 ¡Comienza tu aventura en %s!\n", aldea_actual->nombre);
-
+    // Mostrar el mundo actual
     while (vidas > 0 && mazmorras_no_derrotadas > 0) {
         printf("\n📍 Estás en %s (%s) |  ❤️  %d | 🌿 %d | Mazmorras: %d/%d\n", 
                aldea_actual->nombre,
@@ -44,7 +49,7 @@ void jugar(Aldea *inicio) {
                mazmorras_no_derrotadas, total_mazmorras);
         printf("Comandos disponibles: busq, maz, compr, sig, ant, trans\n> ");
         scanf("%s", comando);
-
+            // Comando para buscar ítem oculto
         if (strcmp(comando, "busq") == 0) {
             if (aldea_actual->oculto && !aldea_actual->oculto->conseguido) {
                 printf("🔎 Has encontrado el ítem oculto: %s\n", aldea_actual->oculto->nombre);
@@ -54,7 +59,7 @@ void jugar(Aldea *inicio) {
                        aldea_actual->mazmorra->requiere->nombre);
             }
         }
-
+        // Comando para entrar a la mazmorra
         else if (strcmp(comando, "maz") == 0) {
             Mazmorra *m = aldea_actual->mazmorra;
             printf("🏰 Entrando a la mazmorra: %s...\n", m->nombre);
@@ -88,7 +93,7 @@ void jugar(Aldea *inicio) {
                         vidas--;
                     }
                 }
-
+                // Comando para atacar al Dios de la mazmorra
                 else if (strcmp(comando, "atac") == 0) {
                     if (m->requiere && m->requiere->conseguido) {
                         printf("⚔️ ¡Has derrotado la mazmorra!\n");
@@ -110,13 +115,13 @@ void jugar(Aldea *inicio) {
                         if (vidas <= 0) break;
                     }
                 }
-
+                // Comando para regresar a la aldea
                 else if (strcmp(comando, "ant") == 0) {
                     aldea_actual = m->origen;
                     printf("🔙 Regresaste a %s.\n", aldea_actual->nombre);
                     mazmorra_activa = 0;
                 }
-
+                // Comando para ir a la siguiente aldea desde la mazmorra
                 else if (strcmp(comando, "sig") == 0) {
                     if (m->origen->sig) {
                         aldea_actual = m->origen->sig;
@@ -133,7 +138,7 @@ void jugar(Aldea *inicio) {
                 }
             }
         }
-
+        // Comando para comprar ítem
         else if (strcmp(comando, "compr") == 0) {
             printf("🛒 Tienda:\n1. Beber sangre (5🌿)\n2. Item de tienda (25🌿)\n> ");
             int opcion;
@@ -167,7 +172,7 @@ void jugar(Aldea *inicio) {
         default: printf("⛔ Compra cancelada.\n");
     }
 }
-
+        // Comando para ir a la siguiente aldea pero desde la aldea
         else if (strcmp(comando, "sig") == 0) {
             if (aldea_actual->sig) {
                 printf("🌿 Te has encontrado 10 Fragmentos de camino a %s\n", aldea_actual->sig->nombre);
@@ -181,7 +186,7 @@ void jugar(Aldea *inicio) {
                 printf("🚧 No hay aldea siguiente.\n");
             }
         }
-
+        // Comando para retroceder a la aldea anterior
         else if (strcmp(comando, "ant") == 0) {
             if (aldea_actual->ant) {
                 printf("🌿 Te has encontrado 10 Fragmentos de camino a %s\n", aldea_actual->ant->nombre);
@@ -195,7 +200,7 @@ void jugar(Aldea *inicio) {
                 printf("🍼 No puedes retroceder más.\n");
             }
         }
-
+        // Comando para ir al mundo paralelo
         else if (strcmp(comando, "trans") == 0) {
             if (desbloqueo_mundo_paralelo && aldea_actual->vinculada) {
                 aldea_actual = aldea_actual->vinculada;
@@ -208,7 +213,7 @@ void jugar(Aldea *inicio) {
         }
     }
 
-    // Fuera del bucle principal, verificar por qué terminó el juego
+    // Fuera del bucle principal, verificar por qué terminó el juego e indicarlo al jugador
     if (vidas <= 0) {
         printf("\n💀 Has caído en el campo de batalla. Hel te reclama. Tu alma no verá el Valhalla.\n");
     } else if (mazmorras_no_derrotadas == 0) {

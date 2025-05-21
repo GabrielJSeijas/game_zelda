@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "items.h"
 
-
+// Definiciones de estructuras
 void generarNombreAldea(int, char *, size_t);
 void verificarAccesibilidad(Aldea *, Aldea *, int, Item **, Item **, Item *);
 void verificarRequeridos(Aldea *, Aldea *, int);
@@ -14,7 +14,7 @@ void hacerAccesible(Item *, Aldea *, Aldea *);
 void generarCombinacionUnica(int, int, char *, size_t);
 int combinacionesSinRepeticion(int, int);
 
-
+// Funciones auxiliares
  bool itemAccesible(Item *item, Aldea *mundo, Aldea *mundo_paralelo);
 Aldea *crearMundo(int n_aldeas) {
    
@@ -22,8 +22,8 @@ Aldea *crearMundo(int n_aldeas) {
     Item *lista_items = NULL;
 
     
-    // === CREACIÓN DE ÍTEMS ===
-    // 1. Crear ítem de tienda principal
+    //----CREACIÓN DE ÍTEMS----
+    // Crear ítem de tienda principal
     Item *tienda_principal = malloc(sizeof(Item));
     strcpy(tienda_principal->nombre, "Ítem de tienda");
     tienda_principal->conseguido = 0;
@@ -31,15 +31,16 @@ Aldea *crearMundo(int n_aldeas) {
     tienda_principal->sig = NULL;
     lista_items = tienda_principal;
 
-    // 2. Crear ítems normales (1 a n_aldeas)
+    //Crear ítems normales (1 a n aldeas)
     Item **items_normales = malloc(n_aldeas * sizeof(Item*));
     int n_bases = sizeof(bases) / sizeof(bases[0]);
     int n_attrs = sizeof(atributos) / sizeof(atributos[0]);
 
+    // Crear ítems normales
     for (int i = 0; i < n_aldeas; i++) {
         int base_idx = rand() % n_bases;
         int attr_idx = rand() % n_attrs;
-        // Asegurarse de que no se repitan combinaciones
+        // Nos aseguramos de que no se repitan combinaciones
         items_normales[i] = malloc(sizeof(Item));
         snprintf(items_normales[i]->nombre, MAX_NOMBRE, "%s %s", bases[base_idx], atributos[attr_idx]);
         items_normales[i]->conseguido = 0;
@@ -49,12 +50,13 @@ Aldea *crearMundo(int n_aldeas) {
 }
 
     
-    // 3. Crear ítems paralelos
+    // Crear ítems paralelos
     Item **items_paralelos = malloc(n_aldeas * sizeof(Item*));
     for (int i = 0; i < n_aldeas; i++) {
         int base_idx = rand() % n_bases;
         int attr_idx = rand() % n_attrs;
 
+        // Nos aseguramos de que no se repitan combinaciones
         items_paralelos[i] = malloc(sizeof(Item));
         snprintf(items_paralelos[i]->nombre, MAX_NOMBRE, "%s %s (P)", bases[base_idx], atributos[attr_idx]);
         items_paralelos[i]->conseguido = 0;
@@ -64,7 +66,7 @@ Aldea *crearMundo(int n_aldeas) {
 }
 
 
-    // === CREAR MUNDO SUPERIOR ===
+    //-----CREAR MUNDO SUPERIOR-----
     int *asignados_requiere = calloc(n_aldeas, sizeof(int));
     int *asignados_ocultos = calloc(n_aldeas, sizeof(int));
     
@@ -78,6 +80,7 @@ Aldea *crearMundo(int n_aldeas) {
     int disponibles_requiere_count = n_aldeas;
     int disponibles_ocultos_count = n_aldeas;
     
+    // Asignar ítems requeridos y ocultos
     for (int i = 0; i < n_aldeas; i++) {
         Aldea *aldea = malloc(sizeof(Aldea));
         generarNombreAldea(i + 1, aldea->nombre, MAX_NOMBRE);
@@ -86,11 +89,11 @@ Aldea *crearMundo(int n_aldeas) {
         aldea->ant = prev;
         aldea->vinculada = NULL;
         aldea->mundo = 0;
-
+        // Asignar aldea a la lista
         if (prev) prev->sig = aldea;
         if (!inicio) inicio = aldea;
         prev = aldea;
-
+        // Asignar mazmorras
         Mazmorra *maz = malloc(sizeof(Mazmorra));
         snprintf(maz->nombre, MAX_NOMBRE, "%s", aldea->nombre);  
         maz->origen = aldea;
@@ -144,7 +147,7 @@ Aldea *crearMundo(int n_aldeas) {
         }
     }
 
-    // === CREAR MUNDO PARALELO ===
+    //------CREAR MUNDO PARALELO-------
     Aldea *inicio_paralelo = NULL;
     Aldea *prev_paralelo = NULL;
     Aldea *tmp = inicio;
@@ -168,11 +171,11 @@ Aldea *crearMundo(int n_aldeas) {
         aldea_p->mundo = 1;
 
         tmp->vinculada = aldea_p;
-
+        // Asignar aldea a la lista
         if (prev_paralelo) prev_paralelo->sig = aldea_p;
         if (!inicio_paralelo) inicio_paralelo = aldea_p;
         prev_paralelo = aldea_p;
-
+        // Asignar mazmorras
         Mazmorra *maz_p = malloc(sizeof(Mazmorra));
         snprintf(maz_p->nombre, MAX_NOMBRE, "%s", aldea_p->nombre); 
         maz_p->origen = aldea_p;
@@ -226,15 +229,15 @@ Aldea *crearMundo(int n_aldeas) {
         paralelo_index++;
     }
 
-    // Liberar memoria
+    // Liberar memoria para listas de asignación
     free(asignados_requiere);
     free(asignados_ocultos);
     free(disponibles_requiere);
     free(disponibles_ocultos);
 
 
-    // === VERIFICACIÓN DE ÍTEMS REQUERIDOS ===
-    // Verificar que todos los ítems paralelos estén asignados
+    //------VERIFICACIÓN DE ÍTEMS REQUERIDOS--------
+    // Verificamos que todos los ítems paralelos estén asignados
     for (int i = 0; i < n_aldeas; i++) {
         if (items_paralelos[i]->usada_en == NULL) {
             // Buscar una mazmorra paralela sin ítem oculto
@@ -292,11 +295,11 @@ Aldea *crearMundo(int n_aldeas) {
         }
     }
 
-    // === VERIFICACIÓN FINAL DE ACCESIBILIDAD ===
-    // Asegurar que todos los ítems requeridos sean accesibles
+    // ----------VERIFICACIÓN FINAL DE ACCESIBILIDAD---------
+    // Asegurar que todos los ítems requeridos sean accesibles para que el jugador pueda avanzar
     verificarAccesibilidad(inicio, inicio_paralelo, n_aldeas, items_normales, items_paralelos, tienda_principal);
 
-    // === Visualización básica ===
+    //-------Visualización básica--------
     printf("\n🌍 Mundo superior:\n");
     tmp = inicio;
     while (tmp) {
@@ -319,7 +322,7 @@ Aldea *crearMundo(int n_aldeas) {
 
     return inicio;
 }
-// Función auxiliar para verificar si todos los ítems están asignados
+// Función auxiliar para verificar si todos los ítems están asignados, por si acaso
 int todosAsignados(int *asignados, int n) {
     for (int i = 0; i < n; i++) {
         if (!asignados[i]) return 0;
@@ -457,16 +460,16 @@ void hacerAccesible(Item *item, Aldea *mundo, Aldea *mundo_paralelo) {
 const char *elements[MAX_ELEMENTS] = {"Asgard", "Midgard", "Vanaheimr", "Jotunheim", 
                                       "Alfheim", "Nilfheim", "Svartalfheim", "Muspelheim","helheim"};
 
-// Función para generar combinaciones
+// Función para generar combinaciones de nombres de aldeas
 void generarNombreAldea(int mundo_num, char *nombre, size_t buffer_size) {
-    // Casos base (mundos 1-4)
+    // Casos base (mundos 1-9)
     if (mundo_num <= 9) {
         snprintf(nombre, buffer_size, "%s", elements[mundo_num - 1]);
         return;
     }
 
     int combinacion = 2; // Empezamos con combinaciones de 2
-    int mundo_base = 10;  // El mundo 5 es donde empiezan las combinaciones
+    int mundo_base = 10;  // El mundo 10 es donde empiezan las combinaciones
     bool nombre_generado = false;
 
     // Generar combinaciones sin repetición
@@ -483,7 +486,7 @@ void generarNombreAldea(int mundo_num, char *nombre, size_t buffer_size) {
         }
     }
 
-    // Si se agotan las combinaciones únicas, usar repeticiones
+    // Si se agotan las combinaciones únicas, usaremos repeticiones
     if (!nombre_generado) {
         int elemento_base = (mundo_num - 1) % MAX_ELEMENTS;
         int repeticiones = ((mundo_num - 1) / MAX_ELEMENTS) + 1;

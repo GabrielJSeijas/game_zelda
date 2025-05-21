@@ -1,6 +1,6 @@
 #ifndef NOMBRES_ITEMS_H
 #define NOMBRES_ITEMS_H
-
+// Definición de nombres de ítems y atributos
 const char *bases[] = {
     "Espada", "Daga", "Hacha", "Bastón", "Lanza",
     "Martillo", "Cuerno", "Escudo", "Guante", "Runas",
@@ -8,7 +8,7 @@ const char *bases[] = {
     "Tótem", "Cuchillo", "Talismán", "Yelmo", "Garra",
     "Mandoble", "Grimorio", "Látigo", "Fragmento", "Reliquia"
 };
-
+// Definición de atributos de ítems
 const char *atributos[] = {
     "de Fuego", "de Hielo", "de Sombras", "de Sangre", "de Almas",
     "de Trueno", "de Magia", "de los Dioses", "del Vacío", "de Tormenta",
